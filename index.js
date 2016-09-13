@@ -41,6 +41,7 @@ app.use(function (req, res, next) {
 //webapp.get('/shutdown', webRoutes.shutdown);
 //webapp.get('/shutdown/confirm', webRoutes.shutdownConfirm);
 
+webapp.post('/payment', webRoutes.payment);
 
 
 
