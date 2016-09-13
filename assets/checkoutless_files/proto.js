@@ -1,0 +1,1 @@
+goog.require('goog.proto2.Message');

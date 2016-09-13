@@ -1,0 +1,1585 @@
+
+<!-- saved from url=(0105)https://x.realytics.io/txd.html?ch=1473780262161&xdm_e=https%3A%2F%2Fwww.rad.co&xdm_c=default8964&xdm_p=1 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script type="text/javascript">
+    var channelId = "1473780262161";
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------ XDM ---------------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    try {
+      (function (window, document, location, setTimeout, decodeURIComponent, encodeURIComponent) {
+
+        // Based on
+        // https://github.com/oyvindkinsey/easyXDM
+
+        try {
+
+          var global = this;
+
+          var channelId = Math.floor(Math.random() * 10000); // randomize the initial id in case of multiple closures loaded
+          var emptyFn = Function.prototype;
+          var reURI = /^((http.?:)\/\/([^:\/\s]+)(:\d+)*)/; // returns groups for protocol (2), domain (3) and port (4)
+          var reParent = /[\-\w]+\/\.\.\//; // matches a foo/../ expression
+          var reDoubleSlash = /([^:])\/\//g; // matches // anywhere but in the protocol
+          var namespace = ""; // stores namespace under which RYxdm object is stored on the page (empty if object is global)
+          var RYxdm = {};
+          var _RYxdm = window.RYxdm; // map over global RYxdm in case of overwrite
+          var IFRAME_PREFIX = "xdm_";
+          var HAS_NAME_PROPERTY_BUG;
+          var useHash = false; // whether to use the hash over the query
+
+          // http://peter.michaux.ca/articles/feature-detection-state-of-the-art-browser-scripting
+          function isHostMethod(object, property) {
+            var t = typeof object[property];
+            return t == 'function' ||
+                (!!(t == 'object' && object[property])) ||
+                t == 'unknown';
+          }
+
+          function isHostObject(object, property) {
+            return !!(typeof(object[property]) == 'object' && object[property]);
+          }
+
+          // http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
+          function isArray(o) {
+            return Object.prototype.toString.call(o) === '[object Array]';
+          }
+
+          var on, un;
+          if (isHostMethod(window, "addEventListener")) {
+            on = function (target, type, listener) {
+              target.addEventListener(type, listener, false);
+            };
+            un = function (target, type, listener) {
+              target.removeEventListener(type, listener, false);
+            };
+          }
+          else if (isHostMethod(window, "attachEvent")) {
+            on = function (object, sEvent, fpNotify) {
+              object.attachEvent("on" + sEvent, fpNotify);
+            };
+            un = function (object, sEvent, fpNotify) {
+              object.detachEvent("on" + sEvent, fpNotify);
+            };
+          }
+          else {
+            throw new Error("Browser not supported");
+          }
+
+          var domIsReady = false, domReadyQueue = [], readyState;
+          if ("readyState" in document) {
+            // If browser is WebKit-powered, check for both 'loaded' (legacy browsers) and
+            // 'interactive' (HTML5 specs, recent WebKit builds) states.
+            // https://bugs.webkit.org/show_bug.cgi?id=45119
+            readyState = document.readyState;
+            domIsReady = readyState == "complete" || (~navigator.userAgent.indexOf('AppleWebKit/') && (readyState == "loaded" || readyState == "interactive"));
+          }
+          else {
+            // If readyState is not supported in the browser, then in order to be able to fire whenReady functions apropriately
+            // when added dynamically _after_ DOM load, we have to deduce wether the DOM is ready or not.
+            // We only need a body to add elements to, so the existence of document.body is enough for us.
+            domIsReady = !!document.body;
+          }
+
+          function dom_onReady() {
+            if (domIsReady) {
+              return;
+            }
+            domIsReady = true;
+            for (var i = 0; i < domReadyQueue.length; i++) {
+              domReadyQueue[i]();
+            }
+            domReadyQueue.length = 0;
+          }
+
+          if (!domIsReady) {
+            if (isHostMethod(window, "addEventListener")) {
+              on(document, "DOMContentLoaded", dom_onReady);
+            }
+            else {
+              on(document, "readystatechange", function () {
+                if (document.readyState == "complete") {
+                  dom_onReady();
+                }
+              });
+              if (document.documentElement.doScroll && window === top) {
+                var doScrollCheck = function () {
+                  if (domIsReady) {
+                    return;
+                  }
+                  // http://javascript.nwbox.com/IEContentLoaded/
+                  try {
+                    document.documentElement.doScroll("left");
+                  }
+                  catch (e) {
+                    setTimeout(doScrollCheck, 1);
+                    return;
+                  }
+                  dom_onReady();
+                };
+                doScrollCheck();
+              }
+            }
+
+            // A fallback to window.onload, that will always work
+            on(window, "load", dom_onReady);
+          }
+
+          function whenReady(fn, scope) {
+            if (domIsReady) {
+              fn.call(scope);
+              return;
+            }
+            domReadyQueue.push(function () {
+              fn.call(scope);
+            });
+          }
+
+          function noConflict(ns) {
+
+            window.RYxdm = _RYxdm;
+            namespace = ns;
+            if (namespace) {
+              IFRAME_PREFIX = "xdm_" + namespace.replace(".", "_") + "_";
+            }
+            return RYxdm;
+          }
+
+          function getLocation(url) {
+            var m = url.toLowerCase().match(reURI);
+            var proto = m[2], domain = m[3], port = m[4] || "";
+            if ((proto == "http:" && port == ":80") || (proto == "https:" && port == ":443")) {
+              port = "";
+            }
+            return proto + "//" + domain + port;
+          }
+
+          function resolveUrl(url) {
+
+            // replace all // except the one in proto with /
+            url = url.replace(reDoubleSlash, "$1/");
+
+            // If the url is a valid url we do nothing
+            if (!url.match(/^(http||https):\/\//)) {
+              // If this is a relative path
+              var path = (url.substring(0, 1) === "/") ? "" : location.pathname;
+              if (path.substring(path.length - 1) !== "/") {
+                path = path.substring(0, path.lastIndexOf("/") + 1);
+              }
+
+              url = location.protocol + "//" + location.host + path + url;
+            }
+
+            // reduce all 'xyz/../' to just ''
+            while (reParent.test(url)) {
+              url = url.replace(reParent, "");
+            }
+
+            return url;
+          }
+
+          function appendQueryParameters(url, parameters) {
+
+            var hash = "", indexOf = url.indexOf("#");
+            if (indexOf !== -1) {
+              hash = url.substring(indexOf);
+              url = url.substring(0, indexOf);
+            }
+            var q = [];
+            for (var key in parameters) {
+              if (parameters.hasOwnProperty(key)) {
+                q.push(key + "=" + encodeURIComponent(parameters[key]));
+              }
+            }
+            return url + (useHash ? "#" : (url.indexOf("?") == -1 ? "?" : "&")) + q.join("&") + hash;
+          }
+
+          // build the query object either from location.query, if it contains the xdm_e argument, or from location.hash
+          var query = (function (input) {
+            input = input.substring(1).split("&");
+            var data = {}, pair, i = input.length;
+            while (i--) {
+              pair = input[i].split("=");
+              data[pair[0]] = decodeURIComponent(pair[1]);
+            }
+            return data;
+          }(/xdm_e=/.test(location.search) ? location.search : location.hash));
+
+          function undef(v) {
+            return typeof v === "undefined";
+          }
+
+          function apply(destination, source, noOverwrite) {
+            var member;
+            for (var prop in source) {
+              if (source.hasOwnProperty(prop)) {
+                if (prop in destination) {
+                  member = source[prop];
+                  if (typeof member === "object") {
+                    apply(destination[prop], member, noOverwrite);
+                  }
+                  else if (!noOverwrite) {
+                    destination[prop] = source[prop];
+                  }
+                }
+                else {
+                  destination[prop] = source[prop];
+                }
+              }
+            }
+            return destination;
+          }
+
+          // This tests for the bug in IE where setting the [name] property using javascript causes the value to be redirected into [submitName].
+          function testForNamePropertyBug() {
+            var form = document.body.appendChild(document.createElement("form")), input = form.appendChild(document.createElement("input"));
+            input.name = IFRAME_PREFIX + "TEST" + channelId; // append channelId in order to avoid caching issues
+            HAS_NAME_PROPERTY_BUG = input !== form.elements[input.name];
+            document.body.removeChild(form);
+          }
+
+          function createFrame(config) {
+            if (undef(HAS_NAME_PROPERTY_BUG)) {
+              testForNamePropertyBug();
+            }
+            var frame;
+            // This is to work around the problems in IE6/7 with setting the name property.
+            // Internally this is set as 'submitName' instead when using 'iframe.name = ...'
+            // This is not required by RYxdm itself, but is to facilitate other use cases
+            if (HAS_NAME_PROPERTY_BUG) {
+              frame = document.createElement("<iframe name=\"" + config.props.name + "\"/>");
+            }
+            else {
+              frame = document.createElement("IFRAME");
+              frame.name = config.props.name;
+            }
+
+            frame.id = frame.name = config.props.name;
+            delete config.props.name;
+
+            if (typeof config.container == "string") {
+              config.container = document.getElementById(config.container);
+            }
+
+            if (!config.container) {
+              // This needs to be hidden like this, simply setting display:none and the like will cause failures in some browsers.
+              apply(frame.style, {
+                position: "absolute",
+                top: "-2000px",
+                // Avoid potential horizontal scrollbar
+                left: "0px"
+              });
+              config.container = document.body;
+            }
+
+            // HACK: IE cannot have the src attribute set when the frame is appended
+            //       into the container, so we set it to "javascript:false" as a
+            //       placeholder for now.  If we left the src undefined, it would
+            //       instead default to "about:blank", which causes SSL mixed-content
+            //       warnings in IE6 when on an SSL parent page.
+            var src = config.props.src;
+            config.props.src = "javascript:false";
+
+            // transfer properties to the frame
+            apply(frame, config.props);
+
+            frame.border = frame.frameBorder = 0;
+            frame.allowTransparency = true;
+            config.container.appendChild(frame);
+
+            if (config.onLoad) {
+              on(frame, "load", config.onLoad);
+            }
+
+            // set the frame URL to the proper value (we previously set it to
+            // "javascript:false" to work around the IE issue mentioned above)
+            if (config.usePost) {
+              var form = config.container.appendChild(document.createElement('form')), input;
+              form.target = frame.name;
+              form.action = src;
+              form.method = 'POST';
+              if (typeof(config.usePost) === 'object') {
+                for (var i in config.usePost) {
+                  if (config.usePost.hasOwnProperty(i)) {
+                    if (HAS_NAME_PROPERTY_BUG) {
+                      input = document.createElement('<input name="' + i + '"/>');
+                    } else {
+                      input = document.createElement("INPUT");
+                      input.name = i;
+                    }
+                    input.value = config.usePost[i];
+                    form.appendChild(input);
+                  }
+                }
+              }
+              form.submit();
+              form.parentNode.removeChild(form);
+            } else {
+              frame.src = src;
+            }
+            config.props.src = src;
+
+            return frame;
+          }
+
+          function checkAcl(acl, domain) {
+            // normalize into an array
+            if (typeof acl == "string") {
+              acl = [acl];
+            }
+            var re, i = acl.length;
+            while (i--) {
+              re = acl[i];
+              re = new RegExp(re.substr(0, 1) == "^" ? re : ("^" + re.replace(/(\*)/g, ".$1").replace(/\?/g, ".") + "$"));
+              if (re.test(domain)) {
+                return true;
+              }
+            }
+            return false;
+          }
+
+          function prepareTransportStack(config) {
+            var protocol = config.protocol, stackEls;
+            config.isHost = config.isHost || undef(query.xdm_p);
+            useHash = config.hash || false;
+
+            if (!config.props) {
+              config.props = {};
+            }
+            if (!config.isHost) {
+              config.channel = query.xdm_c.replace(/["'<>\\]/g, "");
+              config.secret = query.xdm_s;
+              config.remote = query.xdm_e.replace(/["'<>\\]/g, "");
+              ;
+              protocol = query.xdm_p;
+              if (config.acl && !checkAcl(config.acl, config.remote)) {
+                throw new Error("Access denied for " + config.remote);
+              }
+            }
+            else {
+              config.remote = resolveUrl(config.remote);
+              config.channel = config.channel || "default" + channelId++;
+              config.secret = Math.random().toString(16).substring(2);
+              if (undef(protocol)) {
+                if (isHostMethod(window, "postMessage") || isHostMethod(document, "postMessage")) {
+                  // This is supported in IE8+, Firefox 3+, Opera 9+, Chrome 2+ and Safari 4+
+                  protocol = "1";
+                }
+                else if (navigator.product === "Gecko" && "frameElement" in window && navigator.userAgent.indexOf('WebKit') == -1) {
+                  // This is supported in Gecko (Firefox 1+)
+                  protocol = "5";
+                }
+                else {
+                  // This is supported in all browsers where [window].location is writable for all
+                  // The resize event will be used if resize is supported and the iframe is not put
+                  // into a container, else polling will be used.
+                  protocol = "0";
+                }
+              }
+            }
+            config.protocol = protocol; // for conditional branching
+            switch (protocol) {
+              case "0":// 0 = HashTransport
+                apply(config, {
+                  interval: 100,
+                  delay: 2000,
+                  useResize: true,
+                  useParent: false,
+                  usePolling: false
+                }, true);
+                if (config.isHost) {
+                  if (!config.local) {
+                    // If no local is set then we need to find an image hosted on the current domain
+                    var domain = location.protocol + "//" + location.host, images = document.body.getElementsByTagName("img"), image;
+                    var i = images.length;
+                    while (i--) {
+                      image = images[i];
+                      if (image.src.substring(0, domain.length) === domain) {
+                        config.local = image.src;
+                        break;
+                      }
+                    }
+                    if (!config.local) {
+                      // If no local was set, and we are unable to find a suitable file, then we resort to using the current window
+                      config.local = window;
+                    }
+                  }
+
+                  var parameters = {
+                    xdm_c: config.channel,
+                    xdm_p: 0
+                  };
+
+                  if (config.local === window) {
+                    // We are using the current window to listen to
+                    config.usePolling = true;
+                    config.useParent = true;
+                    config.local = location.protocol + "//" + location.host + location.pathname + location.search;
+                    parameters.xdm_e = config.local;
+                    parameters.xdm_pa = 1; // use parent
+                  }
+                  else {
+                    parameters.xdm_e = resolveUrl(config.local);
+                  }
+
+                  if (config.container) {
+                    config.useResize = false;
+                    parameters.xdm_po = 1; // use polling
+                  }
+                  config.remote = appendQueryParameters(config.remote, parameters);
+                }
+                else {
+                  apply(config, {
+                    channel: query.xdm_c,
+                    remote: query.xdm_e,
+                    useParent: !undef(query.xdm_pa),
+                    usePolling: !undef(query.xdm_po),
+                    useResize: config.useParent ? false : config.useResize
+                  });
+                }
+                stackEls = [new RYxdm.stack.HashTransport(config), new RYxdm.stack.ReliableBehavior({}), new RYxdm.stack.QueueBehavior({
+                  encode: true,
+                  maxLength: 4000 - config.remote.length
+                }), new RYxdm.stack.VerifyBehavior({
+                  initiate: config.isHost
+                })];
+                break;
+              case "1":
+                stackEls = [new RYxdm.stack.PostMessageTransport(config)];
+                break;
+              case "5":
+                stackEls = [new RYxdm.stack.FrameElementTransport(config)];
+                break;
+            }
+            // this behavior is responsible for buffering outgoing messages, and for performing lazy initialization
+            stackEls.push(new RYxdm.stack.QueueBehavior({
+              lazy: config.lazy,
+              remove: true
+            }));
+            return stackEls;
+          }
+
+          function chainStack(stackElements) {
+            var stackEl, defaults = {
+              incoming: function (message, origin) {
+                this.up.incoming(message, origin);
+              },
+              outgoing: function (message, recipient) {
+                this.down.outgoing(message, recipient);
+              },
+              callback: function (success) {
+                this.up.callback(success);
+              },
+              init: function () {
+                this.down.init();
+              },
+              destroy: function () {
+                this.down.destroy();
+              }
+            };
+            for (var i = 0, len = stackElements.length; i < len; i++) {
+              stackEl = stackElements[i];
+              apply(stackEl, defaults, true);
+              if (i !== 0) {
+                stackEl.down = stackElements[i - 1];
+              }
+              if (i !== len - 1) {
+                stackEl.up = stackElements[i + 1];
+              }
+            }
+            return stackEl;
+          }
+
+          function removeFromStack(element) {
+            element.up.down = element.down;
+            element.down.up = element.up;
+            element.up = element.down = null;
+          }
+
+          apply(RYxdm, {
+
+            version: "ry-custom", // 2.4.19.0
+
+            query: query,
+
+            stack: {},
+
+            apply: apply,
+
+            whenReady: whenReady,
+
+            noConflict: noConflict
+          });
+
+          (function () {
+            // The map containing the stored functions
+            var _map = {};
+
+            RYxdm.Fn = {
+
+              set: function (name, fn) {
+                _map[name] = fn;
+              },
+
+              get: function (name, del) {
+                if (!_map.hasOwnProperty(name)) {
+                  return;
+                }
+                var fn = _map[name];
+
+                if (del) {
+                  delete _map[name];
+                }
+                return fn;
+              }
+            };
+
+          }());
+
+          RYxdm.Socket = function (config) {
+
+            // create the stack
+            var stack = chainStack(prepareTransportStack(config).concat([
+              {
+                incoming: function (message, origin) {
+                  config.onMessage(message, origin);
+                },
+                callback: function (success) {
+                  if (config.onReady) {
+                    config.onReady(success);
+                  }
+                }
+              }
+            ])), recipient = getLocation(config.remote);
+
+            // set the origin
+            this.origin = getLocation(config.remote);
+
+            this.destroy = function () {
+              stack.destroy();
+            };
+
+            this.postMessage = function (message) {
+              stack.outgoing(message, recipient);
+            };
+
+            stack.init();
+          };
+
+          RYxdm.Rpc = function (config, jsonRpcConfig) {
+
+            // jsonRpcConfig.serializer is mandatory
+
+            // expand shorthand notation
+            if (jsonRpcConfig.local) {
+              for (var method in jsonRpcConfig.local) {
+                if (jsonRpcConfig.local.hasOwnProperty(method)) {
+                  var member = jsonRpcConfig.local[method];
+                  if (typeof member === "function") {
+                    jsonRpcConfig.local[method] = {
+                      method: member
+                    };
+                  }
+                }
+              }
+            }
+
+            // create the stack
+            var stack = chainStack(prepareTransportStack(config).concat([new RYxdm.stack.RpcBehavior(this, jsonRpcConfig), {
+              callback: function (success) {
+                if (config.onReady) {
+                  config.onReady(success);
+                }
+              }
+            }]));
+
+            // set the origin
+            this.origin = getLocation(config.remote);
+
+            this.destroy = function () {
+              stack.destroy();
+            };
+
+            stack.init();
+          };
+
+          RYxdm.stack.PostMessageTransport = function (config) {
+            var pub, // the public interface
+                frame, // the remote frame, if any
+                callerWindow, // the window that we will call with
+                targetOrigin; // the domain to communicate with
+
+            function _getOrigin(event) {
+              if (event.origin) {
+                // This is the HTML5 property
+                return getLocation(event.origin);
+              }
+              if (event.uri) {
+                // From earlier implementations
+                return getLocation(event.uri);
+              }
+              if (event.domain) {
+                // This is the last option and will fail if the
+                // origin is not using the same schema as we are
+                return location.protocol + "//" + event.domain;
+              }
+              throw "Unable to retrieve the origin of the event";
+            }
+
+            function _window_onMessage(event) {
+              var origin = _getOrigin(event);
+              if (origin == targetOrigin && event.data.substring(0, config.channel.length + 1) == config.channel + " ") {
+                pub.up.incoming(event.data.substring(config.channel.length + 1), origin);
+              }
+            }
+
+            return (pub = {
+              outgoing: function (message, domain, fn) {
+                callerWindow.postMessage(config.channel + " " + message, domain || targetOrigin);
+                if (fn) {
+                  fn();
+                }
+              },
+              destroy: function () {
+                un(window, "message", _window_onMessage);
+                if (frame) {
+                  callerWindow = null;
+                  frame.parentNode.removeChild(frame);
+                  frame = null;
+                }
+              },
+              onDOMReady: function () {
+                targetOrigin = getLocation(config.remote);
+                if (config.isHost) {
+                  // add the event handler for listening
+                  var waitForReady = function (event) {
+                    if (event.data == config.channel + "-ready") {
+                      // replace the eventlistener
+                      callerWindow = ("postMessage" in frame.contentWindow) ? frame.contentWindow : frame.contentWindow.document;
+                      un(window, "message", waitForReady);
+                      on(window, "message", _window_onMessage);
+                      setTimeout(function () {
+                        pub.up.callback(true);
+                      }, 0);
+                    }
+                  };
+                  on(window, "message", waitForReady);
+
+                  // set up the iframe
+                  apply(config.props, {
+                    src: appendQueryParameters(config.remote, {
+                      xdm_e: getLocation(location.href),
+                      xdm_c: config.channel,
+                      xdm_p: 1 // 1 = PostMessage
+                    }),
+                    name: IFRAME_PREFIX + config.channel + "_provider"
+                  });
+                  frame = createFrame(config);
+                }
+                else {
+                  // add the event handler for listening
+                  on(window, "message", _window_onMessage);
+                  callerWindow = ("postMessage" in window.parent) ? window.parent : window.parent.document;
+                  callerWindow.postMessage(config.channel + "-ready", targetOrigin);
+
+                  setTimeout(function () {
+                    pub.up.callback(true);
+                  }, 0);
+                }
+              },
+              init: function () {
+                whenReady(pub.onDOMReady, pub);
+              }
+            });
+          };
+
+          RYxdm.stack.FrameElementTransport = function (config) {
+            var pub, frame, send, targetOrigin;
+
+            return (pub = {
+              outgoing: function (message, domain, fn) {
+                send.call(this, message);
+                if (fn) {
+                  fn();
+                }
+              },
+              destroy: function () {
+                if (frame) {
+                  frame.parentNode.removeChild(frame);
+                  frame = null;
+                }
+              },
+              onDOMReady: function () {
+                targetOrigin = getLocation(config.remote);
+
+                if (config.isHost) {
+                  // set up the iframe
+                  apply(config.props, {
+                    src: appendQueryParameters(config.remote, {
+                      xdm_e: getLocation(location.href),
+                      xdm_c: config.channel,
+                      xdm_p: 5 // 5 = FrameElementTransport
+                    }),
+                    name: IFRAME_PREFIX + config.channel + "_provider"
+                  });
+                  frame = createFrame(config);
+                  frame.fn = function (sendFn) {
+                    delete frame.fn;
+                    send = sendFn;
+                    setTimeout(function () {
+                      pub.up.callback(true);
+                    }, 0);
+                    // remove the function so that it cannot be used to overwrite the send function later on
+                    return function (msg) {
+                      pub.up.incoming(msg, targetOrigin);
+                    };
+                  };
+                }
+                else {
+                  // This is to mitigate origin-spoofing
+                  if (document.referrer && getLocation(document.referrer) != query.xdm_e) {
+                    window.top.location = query.xdm_e;
+                  }
+                  send = window.frameElement.fn(function (msg) {
+                    pub.up.incoming(msg, targetOrigin);
+                  });
+                  pub.up.callback(true);
+                }
+              },
+              init: function () {
+                whenReady(pub.onDOMReady, pub);
+              }
+            });
+          };
+
+          RYxdm.stack.HashTransport = function (config) {
+            var pub;
+            var me = this, isHost, _timer, pollInterval, _lastMsg, _msgNr, _listenerWindow, _callerWindow;
+            var useParent, _remoteOrigin;
+
+            function _sendMessage(message) {
+              if (!_callerWindow) {
+                return;
+              }
+              var url = config.remote + "#" + (_msgNr++) + "_" + message;
+              ((isHost || !useParent) ? _callerWindow.contentWindow : _callerWindow).location = url;
+            }
+
+            function _handleHash(hash) {
+              _lastMsg = hash;
+              pub.up.incoming(_lastMsg.substring(_lastMsg.indexOf("_") + 1), _remoteOrigin);
+            }
+
+            function _pollHash() {
+              if (!_listenerWindow) {
+                return;
+              }
+              var href = _listenerWindow.location.href, hash = "", indexOf = href.indexOf("#");
+              if (indexOf != -1) {
+                hash = href.substring(indexOf);
+              }
+              if (hash && hash != _lastMsg) {
+                _handleHash(hash);
+              }
+            }
+
+            function _attachListeners() {
+              _timer = setInterval(_pollHash, pollInterval);
+            }
+
+            return (pub = {
+              outgoing: function (message, domain) {
+                _sendMessage(message);
+              },
+              destroy: function () {
+                window.clearInterval(_timer);
+                if (isHost || !useParent) {
+                  _callerWindow.parentNode.removeChild(_callerWindow);
+                }
+                _callerWindow = null;
+              },
+              onDOMReady: function () {
+                isHost = config.isHost;
+                pollInterval = config.interval;
+                _lastMsg = "#" + config.channel;
+                _msgNr = 0;
+                useParent = config.useParent;
+                _remoteOrigin = getLocation(config.remote);
+                if (isHost) {
+                  apply(config.props, {
+                    src: config.remote,
+                    name: IFRAME_PREFIX + config.channel + "_provider"
+                  });
+                  if (useParent) {
+                    config.onLoad = function () {
+                      _listenerWindow = window;
+                      _attachListeners();
+                      pub.up.callback(true);
+                    };
+                  }
+                  else {
+                    var tries = 0, max = config.delay / 50;
+                    (function getRef() {
+                      if (++tries > max) {
+                        throw new Error("Unable to reference listenerwindow");
+                      }
+                      try {
+                        _listenerWindow = _callerWindow.contentWindow.frames[IFRAME_PREFIX + config.channel + "_consumer"];
+                      }
+                      catch (ex) {
+                      }
+                      if (_listenerWindow) {
+                        _attachListeners();
+                        pub.up.callback(true);
+                      }
+                      else {
+                        setTimeout(getRef, 50);
+                      }
+                    }());
+                  }
+                  _callerWindow = createFrame(config);
+                }
+                else {
+                  _listenerWindow = window;
+                  _attachListeners();
+                  if (useParent) {
+                    _callerWindow = parent;
+                    pub.up.callback(true);
+                  }
+                  else {
+                    apply(config, {
+                      props: {
+                        src: config.remote + "#" + config.channel + new Date(),
+                        name: IFRAME_PREFIX + config.channel + "_consumer"
+                      },
+                      onLoad: function () {
+                        pub.up.callback(true);
+                      }
+                    });
+                    _callerWindow = createFrame(config);
+                  }
+                }
+              },
+              init: function () {
+                whenReady(pub.onDOMReady, pub);
+              }
+            });
+          };
+
+          RYxdm.stack.ReliableBehavior = function (config) {
+            var pub, // the public interface
+                callback; // the callback to execute when we have a confirmed success/failure
+            var idOut = 0, idIn = 0, currentMessage = "";
+
+            return (pub = {
+              incoming: function (message, origin) {
+                var indexOf = message.indexOf("_"), ack = message.substring(0, indexOf).split(",");
+                message = message.substring(indexOf + 1);
+
+                if (ack[0] == idOut) {
+                  currentMessage = "";
+                  if (callback) {
+                    callback(true);
+                  }
+                }
+                if (message.length > 0) {
+                  pub.down.outgoing(ack[1] + "," + idOut + "_" + currentMessage, origin);
+                  if (idIn != ack[1]) {
+                    idIn = ack[1];
+                    pub.up.incoming(message, origin);
+                  }
+                }
+
+              },
+              outgoing: function (message, origin, fn) {
+                currentMessage = message;
+                callback = fn;
+                pub.down.outgoing(idIn + "," + (++idOut) + "_" + message, origin);
+              }
+            });
+          };
+
+          RYxdm.stack.QueueBehavior = function (config) {
+            var pub, queue = [], waiting = true, incoming = "", destroying, maxLength = 0, lazy = false, doFragment = false;
+
+            function dispatch() {
+              if (config.remove && queue.length === 0) {
+                removeFromStack(pub);
+                return;
+              }
+              if (waiting || queue.length === 0 || destroying) {
+                return;
+              }
+              waiting = true;
+              var message = queue.shift();
+
+              pub.down.outgoing(message.data, message.origin, function (success) {
+                waiting = false;
+                if (message.callback) {
+                  setTimeout(function () {
+                    message.callback(success);
+                  }, 0);
+                }
+                dispatch();
+              });
+            }
+
+            return (pub = {
+              init: function () {
+                if (undef(config)) {
+                  config = {};
+                }
+                if (config.maxLength) {
+                  maxLength = config.maxLength;
+                  doFragment = true;
+                }
+                if (config.lazy) {
+                  lazy = true;
+                }
+                else {
+                  pub.down.init();
+                }
+              },
+              callback: function (success) {
+                waiting = false;
+                var up = pub.up; // in case dispatch calls removeFromStack
+                dispatch();
+                up.callback(success);
+              },
+              incoming: function (message, origin) {
+                if (doFragment) {
+                  var indexOf = message.indexOf("_"), seq = parseInt(message.substring(0, indexOf), 10);
+                  incoming += message.substring(indexOf + 1);
+                  if (seq === 0) {
+                    if (config.encode) {
+                      incoming = decodeURIComponent(incoming);
+                    }
+                    pub.up.incoming(incoming, origin);
+                    incoming = "";
+                  }
+                }
+                else {
+                  pub.up.incoming(message, origin);
+                }
+              },
+              outgoing: function (message, origin, fn) {
+                if (config.encode) {
+                  message = encodeURIComponent(message);
+                }
+                var fragments = [], fragment;
+                if (doFragment) {
+                  // fragment into chunks
+                  while (message.length !== 0) {
+                    fragment = message.substring(0, maxLength);
+                    message = message.substring(fragment.length);
+                    fragments.push(fragment);
+                  }
+                  // enqueue the chunks
+                  while ((fragment = fragments.shift())) {
+                    queue.push({
+                      data: fragments.length + "_" + fragment,
+                      origin: origin,
+                      callback: fragments.length === 0 ? fn : null
+                    });
+                  }
+                }
+                else {
+                  queue.push({
+                    data: message,
+                    origin: origin,
+                    callback: fn
+                  });
+                }
+                if (lazy) {
+                  pub.down.init();
+                }
+                else {
+                  dispatch();
+                }
+              },
+              destroy: function () {
+                destroying = true;
+                pub.down.destroy();
+              }
+            });
+          };
+
+          RYxdm.stack.VerifyBehavior = function (config) {
+            var pub, mySecret, theirSecret, verified = false;
+
+            function startVerification() {
+              mySecret = Math.random().toString(16).substring(2);
+              pub.down.outgoing(mySecret);
+            }
+
+            return (pub = {
+              incoming: function (message, origin) {
+                var indexOf = message.indexOf("_");
+                if (indexOf === -1) {
+                  if (message === mySecret) {
+                    pub.up.callback(true);
+                  }
+                  else if (!theirSecret) {
+                    theirSecret = message;
+                    if (!config.initiate) {
+                      startVerification();
+                    }
+                    pub.down.outgoing(message);
+                  }
+                }
+                else {
+                  if (message.substring(0, indexOf) === theirSecret) {
+                    pub.up.incoming(message.substring(indexOf + 1), origin);
+                  }
+                }
+              },
+              outgoing: function (message, origin, fn) {
+                pub.down.outgoing(mySecret + "_" + message, origin, fn);
+              },
+              callback: function (success) {
+                if (config.initiate) {
+                  startVerification();
+                }
+              }
+            });
+          };
+
+          RYxdm.stack.RpcBehavior = function (proxy, config) {
+            var pub, serializer = config.serializer;
+            var _callbackCounter = 0, _callbacks = {};
+
+            function _send(data) {
+              data.jsonrpc = "2.0";
+              pub.down.outgoing(serializer.stringify(data));
+            }
+
+            function _createMethod(definition, method) {
+              var slice = Array.prototype.slice;
+
+              return function () {
+                var l = arguments.length, callback, message = {
+                  method: method
+                };
+
+                if (l > 0 && typeof arguments[l - 1] === "function") {
+                  //with callback, procedure
+                  if (l > 1 && typeof arguments[l - 2] === "function") {
+                    // two callbacks, success and error
+                    callback = {
+                      success: arguments[l - 2],
+                      error: arguments[l - 1]
+                    };
+                    message.params = slice.call(arguments, 0, l - 2);
+                  }
+                  else {
+                    // single callback, success
+                    callback = {
+                      success: arguments[l - 1]
+                    };
+                    message.params = slice.call(arguments, 0, l - 1);
+                  }
+                  _callbacks["" + (++_callbackCounter)] = callback;
+                  message.id = _callbackCounter;
+                }
+                else {
+                  // no callbacks, a notification
+                  message.params = slice.call(arguments, 0);
+                }
+                if (definition.namedParams && message.params.length === 1) {
+                  message.params = message.params[0];
+                }
+                // Send the method request
+                _send(message);
+              };
+            }
+
+            function _executeMethod(method, id, fn, params) {
+              if (!fn) {
+                if (id) {
+                  _send({
+                    id: id,
+                    error: {
+                      code: -32601,
+                      message: "Procedure not found."
+                    }
+                  });
+                }
+                return;
+              }
+
+              var success, error;
+              if (id) {
+                success = function (result) {
+                  success = emptyFn;
+                  _send({
+                    id: id,
+                    result: result
+                  });
+                };
+                error = function (message, data) {
+                  error = emptyFn;
+                  var msg = {
+                    id: id,
+                    error: {
+                      code: -32099,
+                      message: message
+                    }
+                  };
+                  if (data) {
+                    msg.error.data = data;
+                  }
+                  _send(msg);
+                };
+              }
+              else {
+                success = error = emptyFn;
+              }
+              // Call local method
+              if (!isArray(params)) {
+                params = [params];
+              }
+              try {
+                var result = fn.method.apply(fn.scope, params.concat([success, error]));
+                if (!undef(result)) {
+                  success(result);
+                }
+              }
+              catch (ex1) {
+                error(ex1.message);
+              }
+            }
+
+            return (pub = {
+              incoming: function (message, origin) {
+                var data = serializer.parse(message);
+                if (data.method) {
+                  // A method call from the remote end
+                  if (config.handle) {
+                    config.handle(data, _send);
+                  }
+                  else {
+                    _executeMethod(data.method, data.id, config.local[data.method], data.params);
+                  }
+                }
+                else {
+                  // A method response from the other end
+                  var callback = _callbacks[data.id];
+                  if (data.error) {
+                    if (callback.error) {
+                      callback.error(data.error);
+                    }
+                  }
+                  else if (callback.success) {
+                    callback.success(data.result);
+                  }
+                  delete _callbacks[data.id];
+                }
+              },
+              init: function () {
+                if (config.remote) {
+                  // Implement the remote sides exposed methods
+                  for (var method in config.remote) {
+                    if (config.remote.hasOwnProperty(method)) {
+                      proxy[method] = _createMethod(config.remote[method], method);
+                    }
+                  }
+                }
+                pub.down.init();
+              },
+              destroy: function () {
+                for (var method in config.remote) {
+                  if (config.remote.hasOwnProperty(method) && proxy.hasOwnProperty(method)) {
+                    delete proxy[method];
+                  }
+                }
+                pub.down.destroy();
+              }
+            });
+          };
+
+          global.RYxdm = RYxdm;
+        }
+        catch (err) {
+
+        }
+
+      })(window, document, location, window.setTimeout, decodeURIComponent, encodeURIComponent);
+    } catch(err) {
+    }
+
+    var _ = {};
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------- JSON ---------------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    _.json = (function() {
+      // https://github.com/douglascrockford/JSON-js
+      if(typeof JSON!=="object"){JSON={}}(function(){"use strict";function f(e){return e<10?"0"+e:e}function quote(e){escapable.lastIndex=0;return escapable.test(e)?'"'+e.replace(escapable,function(e){var t=meta[e];return typeof t==="string"?t:"\\u"+("0000"+e.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+e+'"'}function str(e,t){var n,r,i,s,o=gap,u,a=t[e];if(a&&typeof a==="object"&&typeof a.toJSON==="function"){a=a.toJSON(e)}if(typeof rep==="function"){a=rep.call(t,e,a)}switch(typeof a){case"string":return quote(a);case"number":return isFinite(a)?String(a):"null";case"boolean":case"null":return String(a);case"object":if(!a){return"null"}gap+=indent;u=[];if(Object.prototype.toString.apply(a)==="[object Array]"){s=a.length;for(n=0;n<s;n+=1){u[n]=str(n,a)||"null"}i=u.length===0?"[]":gap?"[\n"+gap+u.join(",\n"+gap)+"\n"+o+"]":"["+u.join(",")+"]";gap=o;return i}if(rep&&typeof rep==="object"){s=rep.length;for(n=0;n<s;n+=1){if(typeof rep[n]==="string"){r=rep[n];i=str(r,a);if(i){u.push(quote(r)+(gap?": ":":")+i)}}}}else{for(r in a){if(Object.prototype.hasOwnProperty.call(a,r)){i=str(r,a);if(i){u.push(quote(r)+(gap?": ":":")+i)}}}}i=u.length===0?"{}":gap?"{\n"+gap+u.join(",\n"+gap)+"\n"+o+"}":"{"+u.join(",")+"}";gap=o;return i}}if(typeof Date.prototype.toJSON!=="function"){Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+"-"+f(this.getUTCMonth()+1)+"-"+f(this.getUTCDate())+"T"+f(this.getUTCHours())+":"+f(this.getUTCMinutes())+":"+f(this.getUTCSeconds())+"Z":null};String.prototype.toJSON=Number.prototype.toJSON=Boolean.prototype.toJSON=function(){return this.valueOf()}}var cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,escapable=/[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,gap,indent,meta={"\b":"\\b","	":"\\t","\n":"\\n","\f":"\\f","\r":"\\r",'"':'\\"',"\\":"\\\\"},rep;if(typeof JSON.stringify!=="function"){JSON.stringify=function(e,t,n){var r;gap="";indent="";if(typeof n==="number"){for(r=0;r<n;r+=1){indent+=" "}}else if(typeof n==="string"){indent=n}rep=t;if(t&&typeof t!=="function"&&(typeof t!=="object"||typeof t.length!=="number")){throw new Error("JSON.stringify")}return str("",{"":e})}}if(typeof JSON.parse!=="function"){JSON.parse=function(text,reviver){function walk(e,t){var n,r,i=e[t];if(i&&typeof i==="object"){for(n in i){if(Object.prototype.hasOwnProperty.call(i,n)){r=walk(i,n);if(r!==undefined){i[n]=r}else{delete i[n]}}}}return reviver.call(e,t,i)}var j;text=String(text);cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(e){return"\\u"+("0000"+e.charCodeAt(0).toString(16)).slice(-4)})}if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,"@").replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,"]").replace(/(?:^|:|,)(?:\s*\[)+/g,""))){j=eval("("+text+")");return typeof reviver==="function"?walk({"":j},""):j}throw new SyntaxError("JSON.parse")}}})();
+      return {
+        // Old signature (for xdm, etc..).
+        stringify: function(input) { return JSON.stringify(input); },
+        parse: function(input) { return JSON.parse(input); },
+        // New signature (for ry).
+        encode: function(input) { return JSON.stringify(input); },
+        decode: function(input) { return JSON.parse(input); }
+      }
+    })();
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------- ENVIRONMENT -----------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    _.env = {
+      _ua: navigator ? navigator.userAgent : null,
+
+      _cache: {
+        browser: null,
+        os: null,
+        device: null,
+        mobile: null
+      },
+
+      isBot: (navigator && (/(googlebot|mediapartners|bingpreview|baiduspider|yandexbot|google web preview)/i.test(navigator.userAgent))) ? true : false,
+
+      _uaMatch: function(reg) {
+        return reg.test(_.env._ua);
+      },
+
+      _uaContains: function(str) {
+        return _.env._ua.indexOf(str) != -1;
+      },
+
+      getBrowser: function() {
+        if (_.env._cache.browser == null) {
+          var vendor = navigator.vendor || '';
+          var browser = null;
+          var matchStr =  _.env._uaContains;
+          var matchReg =  _.env._uaMatch;
+          if (matchStr("Firefox") || matchReg(/firefox/i)) {
+            browser = "MozillaFirefox";
+          } else if (matchStr("MSIE") || matchReg(/(msie|trident)/i)) {
+            browser = "InternetExplorer";
+          } else if (matchStr("Chrome") || matchReg(/chrome/i)) {
+            browser = (matchStr("Android") || matchReg(/crios/i)) ? 'ChromeMobile' : 'Chrome';
+          } else if ((vendor && vendor.indexOf("Apple") != -1) || matchReg(/safari/i) && !matchReg(/phantom/i)) {
+            browser = matchStr("Mobile") ? "SafariMobile" : "Safari";
+          } else if ((window && window.opera) || matchReg(/opera/i) || matchReg(/opr/i)) {
+            browser = matchStr("Mini") ? "OperaMini" : "Opera";
+          } else if (matchStr("Gecko")) {
+            browser = 'MozillaGecko';
+          } else if (matchReg(/seamonkey\//i)) {
+            browser = 'SeaMonkey';
+          } else if (matchReg(/(BlackBerry|PlayBook|BB10)/i)) {
+            browser = 'BlackBerry';
+          } else if (matchStr("Konqueror")) {
+            browser = "Konqueror";
+          } else {
+            browser = '';
+          }
+          _.env._cache.browser = browser;
+        }
+        return (_.env._cache.browser == '') ? null : _.env._cache.browser;
+      },
+
+      getOs: function() {
+        if (_.env._cache.os == null) {
+          var matchReg =  _.env._uaMatch;
+          var os = null;
+          if (matchReg(/Windows/i)) {
+            os = matchReg(/Phone/) ? 'WindowsMobile' : 'Windows';
+          } else if (matchReg(/Mac/i)) {
+            os = 'MacOS';
+          } else if (matchReg(/Linux/)) {
+            os = 'Linux';
+          } else if (matchReg(/Unix/)) {
+            os = 'Unix';
+          } else if (matchReg(/(iPhone|iPad|iPod)/)) {
+            os = 'iOS';
+          } else if (matchReg(/Android/)) {
+            os = 'Android';
+          } else if (matchReg(/(BlackBerry|PlayBook|BB10)/i)) {
+            os = 'BlackBerry';
+          } else {
+            os = '';
+          }
+          _.env._cache.os = os;
+        }
+        return (_.env._cache.os == '') ? null : _.env._cache.os;
+      },
+
+      getDevice: function() {
+        if (_.env._cache.device == null) {
+          var matchReg =  _.env._uaMatch;
+          var device = null;
+          if (matchReg(/iPhone/)) {
+            device = 'iPhone';
+          } else if (matchReg(/iPad/)) {
+            device = 'iPad';
+          } else if (matchReg(/iPod/)) {
+            device = 'iPod';
+          } else if (matchReg(/(BlackBerry|PlayBook|BB10)/i)) {
+            device = 'BlackBerry';
+          } else if (matchReg(/Windows Phone/i)) {
+            device = 'WindowsPhone';
+          } else if (matchReg(/Android/)) {
+            device = 'AndroidDevice';
+          } else {
+            device = null;
+          }
+          _.env._cache.device = device;
+        }
+        return (_.env._cache.device == '') ? null : _.env._cache.device;
+      },
+
+      isMobile: function() {
+        if (_.env._cache.mobile == null) {
+          var mobile = false;
+          try {
+            mobile = (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino|android|ipad|playbook|silk/i.test(navigator.userAgent||navigator.vendor||window.opera)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test((navigator.userAgent||navigator.vendor||window.opera).substr(0,4)));
+          } catch (err) {
+            mobile = false;
+          }
+          _.env._cache.mobile = mobile ? true : false;
+        }
+        return (_.env._cache.mobile == null) ? null : _.env._cache.mobile;
+      },
+
+      getInfo: function() {
+        if (_.env._ua) {
+          var result = {},
+              browser = _.env.getBrowser(),
+              device = _.env.getDevice(),
+              os =  _.env.getOs(),
+              mobile = _.env.isMobile()
+
+          if (browser)
+            result.browser = browser;
+          if (device)
+            result.device = device;
+          if (os)
+            result.os = os;
+          result.mobile = mobile;
+          return result;
+        } else {
+          return null;
+        }
+      }
+    };
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------------- COOKIE --------------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    _.cookie = (function () {
+
+      var _set = function(name, value, duration) {
+        var date = new Date();
+        date.setTime(new Date().getTime() + duration);
+        var expires = date.toGMTString();
+        var val = (value) ? encodeURIComponent(value) : '';
+        var h = document && document.location && document.location.hostname ? document.location.hostname : null;
+        var hp = h ? h.split('.') : null;
+        var hr = (hp && hp.length > 0) ? hp[hp.length - 1] : null;
+        hr = (hr && hp.length > 1) ? (hp[hp.length - 2] + "." + hr) : hr;
+        hr = (hr && hp.length > 2 && hr.toLowerCase().indexOf('co.uk') == 0) ? (hp[hp.length - 3] + "." + hr) : hr;
+        var domainUrl = hr ? hr : null;
+        var domain = domainUrl ? ("; domain=." + domainUrl) : "";
+        document.cookie = name + "=" + val + "; expires="  + expires + "; path=/" + domain;
+        return true;
+      };
+
+      var _get = function(name) {
+        var param = name + "=";
+        var content = (document && document.cookie) ? document.cookie.split(';') : null;
+        if (content) {
+          for (var i = 0; i < content.length; i++) {
+            var elt = content[i];
+            while (elt.charAt(0) == ' ')
+              elt = elt.substring(1, elt.length);
+            if (elt.indexOf(param) == 0) {
+              var val = elt.substring(param.length, elt.length);
+              return (val) ? decodeURIComponent(val) : null;
+            }
+          }
+        }
+        return null;
+      };
+
+      var _remove = function(name) {
+        return _set(name, '', -24 * 60 * 60 * 1000);
+      };
+
+      var _support = function() {
+        var browser = _.env.getBrowser();
+        var enabled = ((navigator && navigator.cookieEnabled === false) ||
+            (browser && (browser == "Safari" || browser == "SafariMobile"))) ? false : true;
+        return enabled;
+      };
+
+      var cookie = {};
+      cookie.write = _set;
+      cookie.read = _get;
+      cookie.remove = _remove;
+      cookie.support = _support();
+      return cookie;
+    })();
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // -------------------------------------------------- LOCAL STORAGE ---------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    _.local = (function () {
+
+      var _set = function(name, value, duration) {
+        var d = new Date().getTime() + (duration ? duration : 0);
+        var content = (value) ? encodeURIComponent(value) : '';
+        content += ";exp=" + d;
+        localStorage.setItem(name, content);
+        return true;
+      };
+
+      var _get = function(name) {
+        var content = localStorage.getItem(name);
+        if (content) {
+          content = (content) ? content.split(';') : null;
+          if (content && content.length == 2) {
+            var result = content[0];
+            result = result ? decodeURIComponent(result) : null;
+            var exp = content[1];
+            exp = exp ? exp.toString().replace(/^\s+|\s+$/g, "").replace("exp=", "") : null;
+            exp = exp ? parseInt(exp) : null;
+            if (exp <= new Date().getTime()) {
+              localStorage.removeItem(name);
+            } else {
+              return result && result != '' ? result : null;
+            }
+          }
+        }
+        return null;
+      };
+
+      var _remove = function(name) {
+        localStorage.removeItem(name);
+        return true;
+      };
+
+      var _support = function() {
+        var r = !!function() {
+          try {
+            var w = window;
+            var result = false;
+            var uid = new Date();
+            if (typeof w.localStorage != "undefined") {
+              w.localStorage.setItem("rytestxdls", uid);
+              result = w.localStorage.getItem("rytestxdls") == uid;
+              w.localStorage.removeItem("rytestxdls");
+            }
+            return result;
+          } catch (exception) { return false; }
+        }();
+        return r;
+        return false;
+      };
+
+      var local = {};
+      local.write = _set;
+      local.read = _get;
+      local.remove = _remove;
+      local.support = _support();
+      return local;
+    })();
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------- STORAGE ------------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    _.storage = (function () {
+
+      var _storage = _.cookie.support ? _.cookie : (_.local.support ? _.local : null);
+
+      var _write = function(name, value, duration) {
+        try {
+          if (_storage != null) {
+            return _storage.write(name, value, duration);
+          } else {
+            return false;
+          }
+        } catch (err) {
+          return false;
+        }
+      };
+
+      var _read = function(name) {
+        try {
+          if (_storage != null) {
+            return _storage.read(name);
+          } else {
+            return null;
+          }
+        } catch (err) {
+          return null;
+        }
+      };
+
+      var _remove = function(name) {
+        try {
+          if (_storage != null) {
+            return _storage.remove(name);
+          } else {
+            return false;
+          }
+        } catch (err) {
+          return false;
+        }
+      };
+
+      var storage = {};
+      storage.write = _write;
+      storage.read = _read;
+      storage.remove = _remove;
+      return storage;
+    })();
+
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------- MAIN ---------------------------------------------------------
+    // --------------------------------------------------------------------------------------------------------------------
+    var rpc = RYxdm && RYxdm.noConflict && channelId ? RYxdm.noConflict("ryXDM" + channelId) : null;
+    if (rpc) {
+      rpc.Rpc(
+          {},
+          {
+            serializer: _.json,
+            local: {
+              remove: function (name, success, error) {
+                try {
+                  _.storage.remove(name);
+                  success(true);
+                } catch (err) {
+                  error(err);
+                }
+              },
+              write: function (name, value, duration, success, error) {
+                try {
+                  _.storage.write(name, value, duration);
+                  success(true);
+                } catch (err) {
+                  error(err);
+                }
+              },
+              read: function (name, success, error) {
+                try {
+                  var val = _.storage.read(name);
+                  success(val);
+                } catch (err) {
+                  error(err);
+                }
+              }
+            },
+            remote: {}
+          }
+      );
+    }
+
+  </script>
+</head>
+<body>
+
+</body></html>
