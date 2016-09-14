@@ -817,7 +817,7 @@ html.design_v4 body .payment-methods button:hover,
 html.design_v4 button.button-order,
 html.design_v4 .payment-methods button {
     color: white !important;
-    background: #FF2424 !important;
+    background: #FF2424;
 }
 
 #shipping-new-address-form {

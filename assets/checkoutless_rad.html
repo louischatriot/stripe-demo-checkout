@@ -178,13 +178,13 @@
                                   </li>
                                   <li class="fields"><div class="customer-name">
                                       <div class="field name-firstname">
-                                        <label for="shipping:firstname" class="required  "><em>*</em>Prénom</label>
+                                        <label for="shipping:firstname" class="required  ">Prénom</label>
                                         <div class="input-box  ">
                                           <input type="text" id="shipping:firstname" name="shipping[firstname]" value="" title="Prénom" class="input-text required-entry  validation-passed" data-com.agilebits.onepassword.user-edited="yes">
                                         </div>
                                       </div>
                                       <div class="field name-lastname">
-                                        <label for="shipping:lastname" class="required "><em>*</em>Nom</label>
+                                        <label for="shipping:lastname" class="required ">Nom</label>
                                         <div class="input-box ">
                                           <input type="text" id="shipping:lastname" name="shipping[lastname]" value="" title="Nom" class="input-text required-entry validation-passed" data-com.agilebits.onepassword.user-edited="yes">
                                         </div>
@@ -194,7 +194,7 @@
                                   <li class="fields">
                                   </li>
                                   <li class="wide">
-                                    <label for="shipping:street1" class="required "><em>*</em>Adresse</label>
+                                    <label for="shipping:street1" class="required ">Adresse</label>
                                     <div class="input-box                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ">
                                       <input type="text" name="prevent_autofill" id="prevent_autofill" value="" style="display:none;">
                                       <input type="text" name="street1" id="street1" value="" style="display:none;">
@@ -210,17 +210,17 @@
                                   <li class="fields">
                                     <div class="fields">
                                       <div class="field">
-                                        <label for="shipping:postcode" class="required "><em>*</em>Code postal</label>
+                                        <label for="shipping:postcode" class="required ">Code postal</label>
                                         <div class="input-box ">
                                           <input type="text" title="Code postal" name="shipping[postcode]" id="shipping:postcode" value="" class="input-text validate-zip-international required-entry domtom-excluded postcode-validated validation-passed" data-country="shipping:country_id" data-postcode-url="https://www.rad.co/fr/hexaposte/ajax/citysearch/">
                                         </div>
                                       </div>
                                       <div class="field">
-                                        <label for="shipping:city" class="required"><em>*</em>Ville</label>
+                                        <label for="shipping:city" class="required">Ville</label>
                                         <div class="input-box" id="shipping:citycontainer"><input type="text" name="shipping[city]" data-city="" class="input-text required-entry" id="shipping:city"></div>
                                       </div>
                                       <div class="field" id="shipping:regioncontainer" style="display: none;">
-                                        <label for="shipping:region" class="required"><em style="display: none;">*</em>État/Région</label>
+                                        <label for="shipping:region" class="required">État/Région</label>
                                         <div class="input-box">
                                           <select id="shipping:region_id" name="shipping[region_id]" title="État/Région" class="validate-select" defaultvalue="">
                                             <option value="">Sélectionnez un département / état</option>
@@ -232,14 +232,14 @@
                                   </li>
                                   <li class="fields">
                                     <div class="field">
-                                      <label for="shipping:country_id" class="required"><em>*</em>Pays</label>
+                                      <label for="shipping:country_id" class="required">Pays</label>
                                       <div class="input-box">
                                         <select name="shipping[country_id]" id="shipping:country_id" class="validate-select validation-passed" title="Pays" onchange="shipping.setSameAsBilling(false);"><option value=""> </option><option value="BE">Belgique</option><option value="FR" selected="selected">France</option></select>                                </div>
                                     </div>
                                   </li>
                                   <li class="fields">
                                     <div class="field">
-                                      <label for="shipping:telephone" class="required "><em>*</em>Téléphone portable</label>
+                                      <label for="shipping:telephone" class="required ">Téléphone portable</label>
                                       <div class="input-box ">
                                         <input type="text" name="shipping[telephone]" value="" title="Téléphone portable" class="input-text required-phone validate-phoneCustom validation-passed" data-country="shipping:country_id" id="shipping:telephone" data-com.agilebits.onepassword.user-edited="yes">
                                       </div>
@@ -296,13 +296,13 @@
                                   </li>
                                   <li class="fields"><div class="customer-name">
                                       <div class="field name-firstname">
-                                        <label for="billing:firstname" class="required"><em>*</em>Prénom</label>
+                                        <label for="billing:firstname" class="required">Prénom</label>
                                         <div class="input-box">
                                           <input type="text" id="billing:firstname" name="billing[firstname]" value="john" title="Prénom" class="input-text required-entry" onchange="billing.setSameAsShipping(false)">
                                         </div>
                                       </div>
                                       <div class="field name-lastname">
-                                        <label for="billing:lastname" class="required"><em>*</em>Nom</label>
+                                        <label for="billing:lastname" class="required">Nom</label>
                                         <div class="input-box">
                                           <input type="text" id="billing:lastname" name="billing[lastname]" value="doe" title="Nom" class="input-text required-entry" onchange="billing.setSameAsShipping(false)">
                                         </div>
@@ -311,7 +311,7 @@
                                   </li>
 
                                   <li class="wide">
-                                    <label for="billing:street1" class="required"><em>*</em>Adresse</label>
+                                    <label for="billing:street1" class="required">Adresse</label>
                                     <div class="input-box">
                                       <input type="text" title="Adresse" name="billing[street][]" id="billing:street1" value="" class="input-text required-entry" onchange="billing.setSameAsShipping(false);" maxlength="38">
                                     </div>
@@ -324,13 +324,13 @@
                                   </li>
                                   <li class="fields">
                                     <div class="field">
-                                      <label for="billing:city" class="required"><em>*</em>Ville</label>
+                                      <label for="billing:city" class="required">Ville</label>
                                       <div class="input-box">
                                         <input type="text" title="Ville" name="billing[city]" value="" class="input-text required-entry" id="billing:city" onchange="billing.setSameAsShipping(false);">
                                       </div>
                                     </div>
                                     <div class="field" id="billing:regioncontainer" style="display: none;">
-                                      <label for="billing:region_id" class="required"><em style="display: none;">*</em>État/Région</label>
+                                      <label for="billing:region_id" class="required">État/Région</label>
                                       <div class="input-box">
                                         <select id="billing:region_id" name="billing[region_id]" title="État/Région" class="validate-select" defaultvalue="">
                                           <option value="">Sélectionnez un département / état</option>
@@ -341,13 +341,13 @@
                                   </li>
                                   <li class="fields">
                                     <div class="field">
-                                      <label for="billing:postcode" class="required"><em>*</em>Code postal</label>
+                                      <label for="billing:postcode" class="required">Code postal</label>
                                       <div class="input-box">
                                         <input type="text" title="Code postal" name="billing[postcode]" id="billing:postcode" value="" class="input-text validate-zip-international required-entry" onchange="billing.setSameAsShipping(false);">
                                       </div>
                                     </div>
                                     <div class="field">
-                                      <label for="billing:country_id" class="required"><em>*</em>Pays</label>
+                                      <label for="billing:country_id" class="required">Pays</label>
                                       <div class="input-box">
                                         <select name="billing[country_id]" id="billing:country_id" class="validate-select" title="Pays"><option value=""> </option><option value="BE">Belgique</option><option value="FR" selected="selected">France</option></select>                        </div>
                                     </div>
@@ -398,11 +398,11 @@
                         <span>Merci de selectionner votre mode de paiement</span>
                       </div>
                       <fieldset>
-                        <div class="form-fields payment-methods">
+                        <div class="form-fields ZZZpayment-methods">
                           <div class="sp-methods" id="checkout-payment-method-load">
                             <div class="method-selection" style="text-align: left">
                               <div class="payment-option-choice stripe-choice" data-stripe-code="cryozonic_stripe">
-                                <input id="p_method_cryozonic_stripe" value="cryozonic_stripe" type="radio" name="payment[method]" title="Carte de crédit" onclick="payment.switchMethod('cryozonic_stripe');document.getElementById('payment_form_cryozonic_stripe').className = 'form-list stripe-new';" class="radio" style="margin-top: -2px;" autocomplete="off">
+                                <br>
                                 <label for="p_method_cryozonic_stripe">Payer par carte</label>
                               </div>
                               <div id="container_payment_method_cryozonic_stripe" class="payment-method">
@@ -497,98 +497,51 @@
       clear: both;
     }
                                   </style>
-                                  <li class="stripe-new">
-                                    <label class="required" for="cryozonic_stripe_cc_owner"><em>&nbsp;*</em>Nom sur la carte</label>
-                                    <div class="input-box">
-                                      <input type="text" title="Propriétaire de la carte" class="stripe-input input-text required-entry" id="cryozonic_stripe_cc_owner" name="payment[cc_owner]" value="" autocomplete="off" data-was-required="1">
-                                    </div>
-                                  </li>
-                                  <li class="stripe-new credit-card-input">
-                                    <label for="cryozonic_stripe_cc_number" class="required"><em>&nbsp;*</em>Numéro de carte</label>
-                                    <div class="input-box">
-                                      <input type="text" id="cryozonic_stripe_cc_number" name="payment[cc_number]" title="Numéro de carte" class="input-text stripe-input required-entry" value="" autocomplete="off" data-was-required="1">
-                                    </div>
-                                  </li>
 
-                                  <li id="cryozonic_stripe_cc_type_exp_div" class="stripe-new">
-                                    <label for="cryozonic_stripe_expiration" class="required"><em>&nbsp;*</em>Date d'expiration</label>
-                                    <div class="input-box">
-                                      <div class="v-fix">
-                                        <select id="cryozonic_stripe_expiration" name="payment[cc_exp_month]" class="month validate-cc-exp stripe-input required-entry" autocomplete="off" data-was-required="1">
-                                          <option value="" selected="selected">Mois</option>
-                                          <option value="1">01 - janvier</option>
-                                          <option value="2">02 - février</option>
-                                          <option value="3">03 - mars</option>
-                                          <option value="4">04 - avril</option>
-                                          <option value="5">05 - mai</option>
-                                          <option value="6">06 - juin</option>
-                                          <option value="7">07 - juillet</option>
-                                          <option value="8">08 - août</option>
-                                          <option value="9">09 - septembre</option>
-                                          <option value="10">10 - octobre</option>
-                                          <option value="11">11 - novembre</option>
-                                          <option value="12">12 - décembre</option>
-                                        </select>
-                                      </div>
-                                      <div class="v-fix">
-                                        <select id="cryozonic_stripe_expiration_yr" name="payment[cc_exp_year]" class="year stripe-input required-entry" autocomplete="off" data-was-required="1">
-                                          <option value="" selected="selected">Année</option>
-                                          <option value="2016">2016</option>
-                                          <option value="2017">2017</option>
-                                          <option value="2018">2018</option>
-                                          <option value="2019">2019</option>
-                                          <option value="2020">2020</option>
-                                          <option value="2021">2021</option>
-                                          <option value="2022">2022</option>
-                                          <option value="2023">2023</option>
-                                          <option value="2024">2024</option>
-                                          <option value="2025">2025</option>
-                                          <option value="2026">2026</option>
-                                        </select>
-                                      </div>
-                                    </div>
-                                  </li>
-                                  <li id="cryozonic_stripe_cc_type_cvv_div" class="stripe-new">
-                                    <label for="cryozonic_stripe_cc_cid" class="required"><em>&nbsp;*</em>Cryptogramme</label>
-                                    <div class="input-box">
-                                      <div class="v-fix">
-                                        <input type="text" title="Cryptogramme" class="input-text cvv stripe-input validate-cc-cvn required-entry" id="cryozonic_stripe_cc_cid" name="payment[cc_cid]" value="" autocomplete="off" data-was-required="1">
-                                      </div>
-                                    </div>
-                                  </li>
-                                  <li id="cryozonic_stripe_cc_save_div" class="stripe-new">
-                                    <div class="input-box">
-                                      <div class="v-fix">
-                                        <label for="cryozonic_stripe_cc_save" style="display: block;margin-top: 5px;">
-                                          <input type="checkbox" title="Mémoriser cette carte" class="input-checkbox stripe-input" id="cryozonic_stripe_cc_save" name="payment[cc_save]" checked="checked" autocomplete="off">
-                                          &nbsp;
-                                          Mémoriser cette carte                                    </label>
-                                      </div>
-                                    </div>
-                                  </li>
+
+
+
                                 </ul>
                               </div>
+                              <br><br><br>
+
+<!-- TODO: Add a payment form here -->
+
+
+<form action="http://localhost:10000/web/payment" method="POST">
+<script
+  src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+  data-key="pk_test_qSS81PT1aymHP0RZBjw8YXjH"
+  data-amount="3500"
+  data-name="Humble Bundle"
+  data-description="The bundle"
+  data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+  data-zip-code="true"
+  data-currency="EUR"
+  data-locale="fr"
+  data-label="Payer 35,00 €"
+  >
+</script>
+</form>
+
+
+
+
+
+<br><br><br>
+
                               <span class="text-agree">
                                 En accord avec nos <a href="http://www.rad.co/fr/conditions-generales-de-vente" target="_blank">Termes et Conditions</a>.        </span>
 
                               <div id="error-msg"></div>
                               <div style="width:300px;margin: 20px auto 0;float: none;display: block;" class="payment-buttons-container" data-disabled-right-btns="">
-                                <button type="button" class="button cc-button payment-button show-force no-disable" id="iwanttopay" autocomplete="off">
-                                  <span class="button-span">Confirmer et payer</span>
-                                  <span class="please-wait" style="display:none;" id="please-wait-me"><div id="canvasLoader" style="display: block;"><canvas width="18" height="18"></canvas><canvas width="18" height="18" style="display: none;"></canvas></div></span>
-                                </button>
                               </div>
-                              <br><br><br>
                               <p class="encrypt-ssl-txt">Vos détails de paiement sont enregistrés en sécurité auprès de notre partenaire de paiement en utilisant un cryptage bancaire.</p>    </div>
                           </div>
 
 
 
 
-                          <div class="payment-buttons-container">
-                            <button type="button" class="button cc-button payment-button no-disable" id="mobile_save" onclick="payment.save()" autocomplete="off"><span id="payment-mobile-button-span" class="button-span">Passer commande</span><span id="payment-mobile-please-wait" class="please-wait" style="display:none;"><div id="canvasLoader" style="display: block;"><canvas width="18" height="18"></canvas><canvas width="18" height="18" style="display: none;"></canvas></div></span></button>
-                            <button type="button" class="button paypal-button payment-button no-disable" id="mobile_paypal_save" onclick="payment.save()" style="display:none;" autocomplete="off"><span id="payment-button-span" class="button-span">Payer avec <img src="./checkoutless_rad_files/icon_btn_paypal.png"></span><span id="payment-paypal-mobile-please-wait" class="please-wait" style="display:none;"><div id="canvasLoader" style="display: block;"><canvas width="18" height="18"></canvas><canvas width="18" height="18" style="display: none;"></canvas></div></span></button>
-                          </div>
                         </div>
                       </fieldset>
                     </form>
