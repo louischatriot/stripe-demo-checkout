@@ -153,7 +153,7 @@
                     <a href="https://www.rad.co/fr/checkout/onepage/index/#">Éditer</a>
                   </div>
                   <div id="checkout-step-shipping" class="step a-item">
-                    <form action="https://www.rad.co/fr/checkout/onepage/index/" id="co-shipping-form">
+                    <form id="co-shipping-form">
                       <input type="hidden" name="shipping_address_id" id="shipping-address-id" value="">
                       <div class="form-title">
                         <span class="new">Nouvelle adresse de livraison</span><span class="edit" style="display:none;">Modifier mon adresse de livraison</span>
@@ -272,7 +272,7 @@
                     <a href="https://www.rad.co/fr/checkout/onepage/index/#">Éditer</a>
                   </div>
                   <div id="checkout-step-billing" class="step a-item" style="display:none;">
-                    <form id="co-billing-form" action="https://www.rad.co/fr/checkout/onepage/index/">
+                    <form id="co-billing-form">
                       <fieldset>
                         <input type="hidden" name="billing_address_id" id="billing-address-id" value="">
 
@@ -393,7 +393,6 @@
                     <a href="https://www.rad.co/fr/checkout/onepage/index/#">Éditer</a>
                   </div>
                   <div id="checkout-step-payment" class="step a-item">
-                    <form action="https://www.rad.co/fr/checkout/onepage/index/" id="co-payment-form">
                       <div class="form-title">
                         <span>Merci de selectionner votre mode de paiement</span>
                       </div>
@@ -513,10 +512,9 @@
   src="https://checkout.stripe.com/checkout.js" class="stripe-button"
   data-key="pk_test_qSS81PT1aymHP0RZBjw8YXjH"
   data-amount="3500"
-  data-name="Humble Bundle"
-  data-description="The bundle"
-  data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
-  data-zip-code="true"
+  data-name="Rad"
+  data-description="Votre commande Rad"
+  data-image="http://localhost:10000/assets/rad_logo.jpg"
   data-currency="EUR"
   data-locale="fr"
   data-label="Payer 35,00 €"
@@ -544,7 +542,6 @@
 
                         </div>
                       </fieldset>
-                    </form>
                   </div>
                 </li>
               </ol>
